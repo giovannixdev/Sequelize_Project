@@ -7,7 +7,7 @@ const {
   cheeses,
 } = require('./seedData');
 
-describe('User, Board, Cheese Models', () => {
+describe('CRUD Operations with User, Board and Cheese & Associations', () => {
   /**
    * Runs the code prior to all tests
    */
@@ -35,6 +35,7 @@ describe('User, Board, Cheese Models', () => {
   test('can create a Cheese', async () => {
     const cheese1 = await Cheese.create(cheeses[0]);
     await Cheese.create(cheeses[1]);
+    await Cheese.create(cheeses[2]);
     expect(cheese1).toBeDefined();
     expect(cheese1.name).toBe(cheeses[0].name);
   });
@@ -133,21 +134,53 @@ describe('User, Board, Cheese Models', () => {
     const destroyedCheese = await cheese1.destroy();
     expect(destroyedCheese.name).toBe(cheeses[0].name);
     const remainingCheeses = await Cheese.findAll();
-    expect(remainingCheeses.length).toBe(1);
+    expect(remainingCheeses.length).toBe(2);
   });
-})
 
-describe("One to Many Association", () => {
-  test("can create a user with boards", async () => {
-    const users= await User.findAll();
+  test("Multiple boards can be added to a User", async () => {
+    const users = await User.findAll();
     const boards = await Board.findAll();
 
     await users[0].addBoard(boards[0]);
     await users[0].addBoard(boards[1]);
 
     let userBoards = await users[0].getBoards();
-    console.log(JSON.stringify(userBoards, null, 4));
+    // console.log(JSON.stringify(userBoards, null, 4));
 
     expect(userBoards.length).toBe(2);
   });
-});
+
+  test("A Board can have many Cheeses, and a Cheese can be on many Boards", async () => {
+    const boards = await Board.findAll();
+    const cheeses = await Cheese.findAll();
+
+    // Adding Different cheeses to the same board
+    // Adding Different Boards to the same cheese
+    await boards[0].addCheese(cheeses[0]);
+    await cheeses[0].addBoard(boards[0]);
+
+    await boards[0].addCheese(cheeses[1]);
+    await cheeses[1].addBoard(boards[0]);
+
+    await boards[1].addCheese(cheeses[0]);
+    await cheeses[0].addBoard(boards[1]);
+
+    let boardCheeses = await boards[0].getCheeses();
+    let cheeseBoards = await cheeses[0].getBoards();
+
+    // console.log("boardCheeses ->, ",JSON.stringify(boardCheeses, null, 4));
+    // console.log("cheeseBoards -> ",JSON.stringify(cheeseBoards, null, 4));
+
+    const [sue] = await Board.findAll(
+      { where: { name: 'Sue' }, include: Cheese } // eager load the Books
+    );
+    console.log(JSON.stringify(sue, null, 2));
+
+    const tasks = await Board.findAll({ include: Cheese });
+    console.log(JSON.stringify(tasks, null, 2));
+
+    expect(boardCheeses.length).toBe(2);
+    expect(cheeseBoards.length).toBe(2);
+    expect(tasks[0].cheeses[1].name).toBe("mozzarella");
+  })
+})

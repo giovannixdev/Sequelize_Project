@@ -35,6 +35,10 @@ const cheeses = [
   {
     name: 'swiss',
     description: 'swiss cheese'
+  },
+  {
+    name: 'mozzarella',
+    description: 'mozzarella cheese'
   }
 ]
 
