@@ -176,11 +176,13 @@ describe('CRUD Operations with User, Board and Cheese & Associations', () => {
     );
     console.log(JSON.stringify(sue, null, 2));
 
-    const tasks = await Board.findAll({ include: Cheese });
-    console.log(JSON.stringify(tasks, null, 2));
-
     expect(boardCheeses.length).toBe(2);
     expect(cheeseBoards.length).toBe(2);
-    expect(tasks[0].cheeses[1].name).toBe("mozzarella");
+  })
+
+  test("A board can be loaded with its cheeses using Eager Loading", async () => {
+    const boards = await Board.findAll({ include: Cheese });
+    console.log(JSON.stringify(boards, null, 2));
+    expect(boards[0].cheeses[1].name).toBe("mozzarella");
   })
 })
